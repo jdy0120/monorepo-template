@@ -1,0 +1,35 @@
+FROM node:20-alpine AS base
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+RUN corepack enable
+
+FROM base AS builder
+WORKDIR /app
+COPY . .
+RUN pnpm install --frozen-lockfile
+
+# 빌드 소스(Database, API) 빌드
+RUN pnpm --filter database db:generate
+RUN pnpm --filter database build
+RUN pnpm --filter shared build
+RUN pnpm --filter api build
+
+# 배포를 위해 필요한 파일만 추출 (/app/pruned 폴더로)
+# production 의존성만 포함됩니다.
+RUN pnpm --filter api --prod deploy /app/pruned --legacy
+
+FROM base AS runner
+WORKDIR /app
+ENV NODE_ENV=production
+
+# pruned 폴더의 결과물만 복사
+COPY --from=builder /app/pruned ./
+
+COPY --from=builder /app/packages/database/prisma ./prisma/prisma
+COPY --from=builder /app/packages/database/prisma.config.ts ./prisma/prisma.config.ts
+
+# 기본 포트 설정 (사용자 요청에 맞춤)
+EXPOSE 3000
+ENV PORT=${SERVER_PORT:-4174}
+
+CMD ["sh", "-c", "cd ./prisma && npx prisma db push --schema=./prisma --accept-data-loss && cd .. && node dist/server.js"]

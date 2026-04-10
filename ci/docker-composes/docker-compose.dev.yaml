@@ -1,0 +1,96 @@
+services:
+  db-migrate:
+    build:
+      context: ../../
+      dockerfile: ci/dockers/dev/Dockerfile.db-migrate
+    command: pnpm --filter database db:dev
+    volumes:
+      - ../../packages/database:/app/packages/database
+      - /app/packages/database/node_modules
+    networks:
+      - custom-network
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${PROJECT_NAME}-db:${DB_PORT}/${POSTGRES_DB}
+
+  server:
+    build:
+      context: ../../
+      dockerfile: ci/dockers/dev/Dockerfile.api
+    container_name: ${PROJECT_NAME}-server
+    working_dir: /app/apps/api
+    volumes:
+      - ../../apps/api:/app/apps/api
+      - ../../packages/database:/app/packages/database
+      - /app/apps/api/node_modules
+    env_file:
+      - ../../envs/.env.dev
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${PROJECT_NAME}-db:${DB_PORT}/${POSTGRES_DB}
+    ports:
+      - ${SERVER_PORT}:${SERVER_PORT}
+    networks:
+      - custom-network
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl -f http://localhost:${SERVER_PORT}/health || exit 1",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    depends_on:
+      db:
+        condition: service_healthy
+
+  web:
+    build:
+      context: ../../
+      dockerfile: ci/dockers/dev/Dockerfile.web
+    container_name: ${PROJECT_NAME}-web
+    working_dir: /app/apps/web
+    volumes:
+      - ../../apps/web:/app/apps/web
+      - ../../packages:/app/packages
+      - /app/apps/web/node_modules
+    env_file:
+      - ../../envs/.env.dev
+    environment:
+      - NEXT_PUBLIC_API_BASE_URL=${NEXT_PUBLIC_API_BASE_URL}
+      - API_BASE_URL=${API_BASE_URL}
+    ports:
+      - ${WEB_PORT}:${WEB_PORT}
+    networks:
+      - custom-network
+
+  db:
+    image: postgres:16-alpine
+    container_name: ${PROJECT_NAME}-db
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    volumes:
+      - ../../ci/db/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - ${DB_PORT}:${DB_PORT}
+    networks:
+      - custom-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  custom-network:
+    name: ${NETWORK_NAME}
+    external: true
+
+volumes:
+  pgdata:
+    driver: local

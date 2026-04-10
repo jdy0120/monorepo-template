@@ -1,0 +1,99 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: ${PROJECT_NAME}-db
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${PROJECT_NAME}-db:${DB_PORT}/${POSTGRES_DB}
+      - PROJECT_NAME=${PROJECT_NAME}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - DB_PORT=${DB_PORT}
+      - APP_NAME=${APP_NAME}
+    volumes:
+      - ../../ci/db/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - ${DB_PORT}:${DB_PORT}
+    networks:
+      - custom-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: ../../
+      dockerfile: ci/dockers/prod/Dockerfile.api
+    container_name: ${PROJECT_NAME}-api
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${PROJECT_NAME}-db:5432/${POSTGRES_DB}
+      - PROJECT_NAME=${PROJECT_NAME}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - DB_PORT=${DB_PORT}
+      - NETWORK_NAME=${NETWORK_NAME}
+      - SERVER_PORT=${SERVER_PORT}
+      - APP_NAME=${APP_NAME}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS}
+      - ACCESS_JWT_SECRET=${ACCESS_JWT_SECRET}
+      - ACCESS_JWT_EXPIRED_SEC=${ACCESS_JWT_EXPIRED_SEC}
+      - REFRESH_JWT_SECRET=${REFRESH_JWT_SECRET}
+      - REFRESH_JWT_EXPIRED_SEC=${REFRESH_JWT_EXPIRED_SEC}
+      - SIGN_UP_JWT_SECRET=${SIGN_UP_JWT_SECRET}
+      - SIGN_UP_JWT_EXPIRED_SEC=${SIGN_UP_JWT_EXPIRED_SEC}
+      - KAKAO_REST_API_KEY=${KAKAO_REST_API_KEY}
+      - KAKAO_CLIENT_SECRET=${KAKAO_CLIENT_SECRET}
+      - KAKAO_JAVASCRIPT_KEY=${KAKAO_JAVASCRIPT_KEY}
+      - KAKAO_REDIRECT_URI=${KAKAO_REDIRECT_URI}
+      - WEB_URL=${WEB_URL}
+      - WORKER_URL=${WORKER_URL}
+      - WORKER_ACCESS_TOKEN=${WORKER_ACCESS_TOKEN}
+      - PORT=${SERVER_PORT:-3000}
+    ports:
+      - "${SERVER_PORT:-3000}:${SERVER_PORT:-3000}"
+    depends_on:
+      db:
+        condition: service_healthy
+
+    networks:
+      - custom-network
+  web:
+    build:
+      context: ../../
+      dockerfile: ci/dockers/prod/Dockerfile.web
+      args:
+        - NEXT_PUBLIC_API_BASE_URL=${NEXT_PUBLIC_API_BASE_URL}
+        - NEXT_PUBLIC_KAKAO_REST_API_KEY=${KAKAO_REST_API_KEY}
+        - NEXT_PUBLIC_KAKAO_CLIENT_SECRET=${KAKAO_CLIENT_SECRET}
+        - NEXT_PUBLIC_KAKAO_JAVASCRIPT_KEY=${KAKAO_JAVASCRIPT_KEY}
+        - NEXT_PUBLIC_KAKAO_REDIRECT_URI=${KAKAO_REDIRECT_URI}
+    container_name: ${PROJECT_NAME}-web
+    environment:
+      - PROJECT_NAME=${PROJECT_NAME}
+      - NETWORK_NAME=${NETWORK_NAME}
+      - WEB_PORT=${WEB_PORT}
+      - APP_NAME=${APP_NAME}
+      - API_BASE_URL=${API_BASE_URL}
+      - NEXT_PUBLIC_API_BASE_URL=${NEXT_PUBLIC_API_BASE_URL}
+      - KAKAO_REST_API_KEY=${KAKAO_REST_API_KEY}
+      - KAKAO_CLIENT_SECRET=${KAKAO_CLIENT_SECRET}
+      - KAKAO_JAVASCRIPT_KEY=${KAKAO_JAVASCRIPT_KEY}
+      - KAKAO_REDIRECT_URI=${KAKAO_REDIRECT_URI}
+      - PORT=${WEB_PORT:-3001}
+    ports:
+      - "${WEB_PORT:-3001}:${WEB_PORT:-3001}"
+    networks:
+      - custom-network
+
+networks:
+  custom-network:
+    driver: bridge
+    external: true
+    name: ${NETWORK_NAME}
+
+volumes:
+  pgdata:

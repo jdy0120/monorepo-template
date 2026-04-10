@@ -1,0 +1,25 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "CommonJS",
+    "moduleResolution": "Node",
+    "strict": true,
+    "types": ["node"],
+    "incremental": true,
+    "skipLibCheck": true,
+    "paths": {
+      "@template/database": ["../../packages/database/index.ts"],
+      "@template/database/*": ["../../packages/database/*"]
+    },
+    "rootDir": "src",
+    "esModuleInterop": true,
+    "outDir": "./dist"
+  },
+  "references": [
+    { "path": "../../packages/database" },
+    { "path": "../../packages/shared" }
+  ],
+  "include": ["src/**/*.ts", "**/*.ts"],
+  "exclude": ["node_modules", "dist"]
+}

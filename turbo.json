@@ -1,0 +1,21 @@
+// [루트 경로]/turbo.json
+{
+  "$schema": "https://turbo.build/schema.json",
+  "pipeline": {
+    "build": {
+      "dependsOn": ["^build"]
+    },
+    "web#build": {
+      "dependsOn": ["^build"],
+      "outputs": [".next/**", "!.next/cache/**"],
+      "env": [
+        "API_BASE_URL",
+        "NEXT_PUBLIC_API_BASE_URL",
+        "NEXT_PUBLIC_KAKAO_REST_API_KEY",
+        "NEXT_PUBLIC_KAKAO_REDIRECT_URI",
+        "NEXT_PUBLIC_KAKAO_JAVASCRIPT_KEY",
+        "NEXT_PUBLIC_KAKAO_CLIENT_SECRET"
+      ]
+    }
+  }
+}

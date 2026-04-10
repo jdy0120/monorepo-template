@@ -1,0 +1,35 @@
+{
+  "name": "template",
+  "private": true,
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "web:dev": "pnpm --filter web dev",
+    "web:build": "pnpm --filter web build",
+    "web:start": "pnpm --filter web start",
+    "api:dev": "pnpm --filter api dev",
+    "api:build": "pnpm --filter api build",
+    "api:start": "pnpm --filter api start",
+    "db:build": "pnpm --filter database build",
+    "db:push": "pnpm --filter database db:push",
+    "db:generate": "pnpm --filter database db:generate",
+    "db:migrate": "pnpm --filter database db:migrate",
+    "shared:build": "pnpm --filter shared build"
+  },
+  "packageManager": "pnpm@10.10.0",
+  "dependencies": {
+    "pnpm": "^10.10.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.37",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "eslint": "^9.39.4",
+    "install": "^0.13.0",
+    "npm": "^11.11.1",
+    "prettier": "^3.8.1",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3",
+    "zod": "^4.3.6"
+  }
+}

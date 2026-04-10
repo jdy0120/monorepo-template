@@ -1,0 +1,26 @@
+{
+  "name": "@template/database",
+  "private": true,
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "db:dev": "nodemon --watch 'prisma/schema/**/*.prisma' --ext prisma --exec 'pnpm prisma generate && pnpm prisma db push --accept-data-loss'",
+    "db:push": "prisma db push",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev"
+  },
+  "devDependencies": {
+    "@types/pg": "^8.18.0",
+    "prisma": "^7.5.0",
+    "prisma-zod-generator": "^2.1.4"
+  },
+  "packageManager": "pnpm@10.10.0",
+  "dependencies": {
+    "@prisma/adapter-pg": "^7.5.0",
+    "@prisma/client": "^7.5.0",
+    "dotenv": "^17.3.1",
+    "pg": "^8.20.0",
+    "nodemon": "^3.1.14"
+  }
+}

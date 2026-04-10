@@ -1,0 +1,30 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../../generated/prisma"
+}
+
+generator zod {
+  provider = "prisma-zod-generator"
+  output   = "../../generated/zod"
+  
+  addInputTypeValidation = true
+
+  // 🚨 1. 무한 로딩 주범(타입 폭탄) 생성 완벽 차단
+  createInputTypes          = false 
+  createRelationValuesTypes = false 
+  addIncludeType            = false 
+  addSelectType             = false 
+
+  // 🚀 2. 'export *' 배럴 파일 생성 방지 및 성능 최적화
+  useMultipleFiles          = true  // 모든 스키마를 하나의 거대한 파일이 아닌 여러 폴더/파일로 쪼갬
+  writeBarrelFiles          = false // TS 서버를 죽이던 index.ts(export *) 파일을 아예 안 만듦
+}
+
+datasource db {
+  provider = "postgresql"
+}

@@ -1,0 +1,88 @@
+model User {
+  id        String @id @default(uuid())
+  nickname  String
+  email     String
+
+  accessToken String?
+  accessTokenExpiresAt DateTime?
+  refreshToken String?
+  refreshTokenExpiresAt DateTime?
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  socialAccounts SocialAccount[]
+  refreshTokens RefreshToken[]
+  userInfo UserInfo?
+  pointTransactions PointTransaction[]
+  newyear Newyear?
+  summary Summary?
+
+  @@unique([email])
+  @@map("users")
+}
+
+model UserInfo {
+  id String @id @default(uuid())
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+  gender String
+  birthDate String
+  birthTime String
+  location String
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([userId])
+  @@index([userId])
+  @@map("user_infos")
+}
+
+
+// 포인트 변동 내역 모델 신설
+model PointTransaction {
+  id        String   @id @default(uuid())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  amount    Int      // 변동 금액 (충전: +, 사용: -)
+  type      String   // 종류 (CHARGE, USE, REFUND 등)
+  description String? // 상세 내용
+  
+  createdAt DateTime @default(now()) @map("created_at")
+  @@index([userId])
+  @@map("point_transactions")
+}
+
+model SocialAccount {
+  id        String   @id @default(uuid())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  provider  String
+  accountId String
+  
+  // 추가해야 할 컬럼들
+  accessToken        String?  // 카카오 액세스 토큰
+  accessTokenExpiresAt DateTime? // 액세스 토큰 만료일
+  refreshToken       String?  // 카카오 리프레시 토큰
+  refreshTokenExpiresAt DateTime? // 리프레시 토큰 만료일
+  
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt      @map("updated_at")
+
+  @@unique([provider, accountId])
+  @@index([userId])
+  @@map("social_accounts")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime // 토큰 만료 시간
+  createdAt DateTime @default(now())
+
+  @@unique([token])
+  @@index([userId])
+  @@map("refresh_tokens")
+}
