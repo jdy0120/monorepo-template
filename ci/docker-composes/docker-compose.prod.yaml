@@ -29,7 +29,7 @@ services:
       dockerfile: ci/dockers/prod/Dockerfile.api
     container_name: ${PROJECT_NAME}-api
     environment:
-      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${PROJECT_NAME}-db:5432/${POSTGRES_DB}
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${PROJECT_NAME}-db:${DB_PORT}/${POSTGRES_DB}
       - PROJECT_NAME=${PROJECT_NAME}
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
