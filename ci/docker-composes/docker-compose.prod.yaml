@@ -3,7 +3,7 @@ services:
     image: postgres:16-alpine
     container_name: ${PROJECT_NAME}-db
     environment:
-      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${PROJECT_NAME}-db:${DB_PORT}/${POSTGRES_DB}
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${PROJECT_NAME}-db:5432/${POSTGRES_DB}
       - PROJECT_NAME=${PROJECT_NAME}
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
@@ -14,7 +14,7 @@ services:
       - ../../ci/db/init.sql:/docker-entrypoint-initdb.d/init.sql
       - pgdata:/var/lib/postgresql/data
     ports:
-      - ${DB_PORT}:${DB_PORT}
+      - ${DB_PORT}:5432
     networks:
       - custom-network
     healthcheck:
@@ -29,7 +29,7 @@ services:
       dockerfile: ci/dockers/prod/Dockerfile.api
     container_name: ${PROJECT_NAME}-api
     environment:
-      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${PROJECT_NAME}-db:${DB_PORT}/${POSTGRES_DB}
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${PROJECT_NAME}-db:5432/${POSTGRES_DB}
       - PROJECT_NAME=${PROJECT_NAME}
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
